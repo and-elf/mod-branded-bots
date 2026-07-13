@@ -1,0 +1,35 @@
+#
+# mod-branded-bots configuration
+#
+# Gives random playerbots a proc-based brand (from mod-branding) so a botted world/party feels
+# consistent. Values are read at startup and on `.reload config`. Requires mod-branding and
+# mod-playerbots to be present and enabled.
+#
+
+[worldserver]
+
+#
+#    BrandedBots.Enable
+#        Description: Master switch. When 0 the module is inert (no bot is branded).
+#        Default:     0 - (disabled)
+#
+
+BrandedBots.Enable = 0
+
+#
+#    BrandedBots.EnabledSchoolMask
+#        Description: Bitmask over Branding::BrandId (bit i => school i may be rolled). A random
+#                     bot's school is chosen uniformly from the set bits, seeded by its GUID so the
+#                     same bot always gets the same school. 0 disables branding (no set bits).
+#        Default:     32767 - (all 15 schools: bits 0..14)
+#
+
+BrandedBots.EnabledSchoolMask = 32767
+
+#
+#    BrandedBots.NoBrandChancePermille
+#        Description: Per-mille chance [0..1000] that a bot is left unbranded, for a mixed roster.
+#        Default:     0 - (every bot is branded)
+#
+
+BrandedBots.NoBrandChancePermille = 0

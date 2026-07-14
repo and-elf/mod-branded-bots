@@ -1,9 +1,13 @@
 #
 # mod-branded-bots configuration
 #
-# Gives random playerbots a proc-based brand (from mod-branding) so a botted world/party feels
-# consistent. Values are read at startup and on `.reload config`. Requires mod-branding and
-# mod-playerbots to be present and enabled.
+# Gives random playerbots a brand (from mod-branding) so a botted world/party feels consistent. A
+# branded bot is made *observable* two ways: a per-school cosmetic aura (visible), and -- when
+# ExpressBrand is on -- an actual expressing brand effect (knowledge unlocked, active loadout brand,
+# bot-level-scaled proficiency). The effect half additionally requires mod-branding's
+# `Branding.Effect.Enable = 1`; without it the brand is written but inert (multiplier 1.0).
+# Values are read at startup and on `.reload config`. Requires mod-branding and mod-playerbots
+# to be present and enabled.
 #
 
 [worldserver]
@@ -14,7 +18,7 @@
 #        Default:     0 - (disabled)
 #
 
-BrandedBots.Enable = 0
+BrandedBots.Enable = 1
 
 #
 #    BrandedBots.EnabledSchoolMask
@@ -33,3 +37,34 @@ BrandedBots.EnabledSchoolMask = 32767
 #
 
 BrandedBots.NoBrandChancePermille = 0
+
+#
+#    BrandedBots.ExpressBrand
+#        Description: When 1, a branded bot's brand actually EXPRESSES a combat effect: the school is
+#                     unlocked for the bot's account (Knowledge), set as the bot's active loadout
+#                     brand, and granted a proficiency level scaled to the bot's character level
+#                     (max-level bot => full strength). This requires mod-branding's
+#                     `Branding.Effect.Enable = 1` to have any in-combat effect. When 0, bots are only
+#                     cosmetically branded (aura visual, no effect).
+#        Default:     1 - (bots express their brand)
+#
+
+BrandedBots.ExpressBrand = 1
+
+#
+#    BrandedBots.VisualSpells
+#        Description: CSV of cosmetic aura spell ids in brand order
+#                     (Fire,Frost,Nature,Shadow,Arcane,Holy,Physical,Wind,Lightning,Blood,Void,Stone,
+#                     Venom,Chrono,Spirit). Cast self-on the bot when it is branded so the school is
+#                     visible. 0 = no visual for that school. Fewer entries than schools leaves the
+#                     rest without a visual.
+#                     NOTE: these defaults are ordinary buff auras chosen for their school-colored
+#                     glow; they carry minor mechanical/class flavor. Swap in pure-visual spell ids to
+#                     taste. A spell that can't apply to a given bot is simply skipped (no harm).
+#        Default:     "30482,7302,467,687,6117,7294,0,6117,324,7294,687,467,467,6117,465"
+#                     (Molten Armor, Ice Armor, Thorns, Demon Armor, Mage Armor, Retribution Aura,
+#                      none, Mage Armor, Lightning Shield, Retribution Aura, Demon Armor, Thorns,
+#                      Thorns, Mage Armor, Devotion Aura)
+#
+
+BrandedBots.VisualSpells = "30482,7302,467,687,6117,7294,0,6117,324,7294,687,467,467,6117,465"

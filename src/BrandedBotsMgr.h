@@ -53,7 +53,7 @@ namespace BrandedBots
         // mod-branding's effect ceiling (Branding.Effect.MaxEffectLevel), the target of the level scale.
         uint8_t _maxEffectLevel = 0;
         // Per-school cosmetic aura spell ids (index = BrandId); 0 = no visual for that school.
-        std::array<uint32_t, static_cast<size_t>(Branding::BrandId::COUNT)> _visualSpells{};
+        std::array<uint32_t, static_cast<std::size_t>(Branding::BrandId::COUNT)> _visualSpells{};
 
         UniformBotBrandPolicy _policy;
     };

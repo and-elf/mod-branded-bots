@@ -20,7 +20,7 @@ namespace
     // malformed fields become 0 (no visual). Extra fields past the school count are ignored; missing
     // trailing fields leave 0. Adapter-side (pure core stays AzerothCore-free).
     void ParseVisualSpellCsv(std::string const& csv,
-        std::array<uint32_t, static_cast<size_t>(Branding::BrandId::COUNT)>& out)
+        std::array<uint32_t, static_cast<std::size_t>(Branding::BrandId::COUNT)>& out)
     {
         out.fill(0);
         std::stringstream ss(csv);
@@ -125,7 +125,7 @@ namespace BrandedBots
             return;
 
         // Cosmetic first (independent of effects): cast the school's aura so the bot is visibly branded.
-        if (auto const idx = static_cast<size_t>(brand); idx < _visualSpells.size())
+        if (auto const idx = static_cast<std::size_t>(brand); idx < _visualSpells.size())
         {
             if (uint32 const visual = _visualSpells[idx])
                 bot->CastSpell(bot, visual, true);

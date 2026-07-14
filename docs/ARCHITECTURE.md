@@ -89,8 +89,30 @@ Follows the pure-core / adapter / policy-injection pattern of the sibling module
 - `src/` (adapter, the only code touching the live server):
   - Detect bot-ness via the **public** playerbots API (`sRandomPlayerbotMgr->IsRandomBot(player)` /
     `GET_PLAYERBOT_AI(player)`) — read-only.
-  - `BrandingBotsPlayerScript : PlayerScript` — `OnPlayerLogin`: if bot & unbranded, roll via the
-    policy, persist, and `BrandEquipped`.
+  - `BrandedBotsPlayerScript : PlayerScript` — `OnPlayerLogin`: if bot & random, roll via the policy,
+    `BrandEquipped` (item state, kept for the addon/status readout), then **express + visualize** the
+    brand (see §4.1).
+  - `BotProficiency` (pure core): maps a bot's *character* level → a branding *proficiency* level
+    (linear "scale to bot level"), the only knob that turns a bot's brand from inert into a scaling
+    effect. Unit-tested.
+
+### 4.1 Making the brand observable (override of §5)
+
+Writing an item brand alone is **invisible and inert** for a bot: mod-branding renders no visual for an
+item brand, and its effect model gates on account **Knowledge** (`CanExpressBrand`) and a proficiency
+**level** (`strength = level / maxEffectLevel`) that a bot has neither of. So on a branded bot's login the
+adapter additionally, via mod-branding's **public API**:
+
+1. **Cosmetic** — casts the school's aura (`BrandedBots.VisualSpells`, index = `BrandId`) on the bot so
+   it is visibly branded. Independent of the effect system.
+2. **Functional** (when `BrandedBots.ExpressBrand`) — `ProficiencyMgr::UnlockBrand` (account Knowledge),
+   `LoadoutMgr::SetActiveBrand` (active school), and `ProficiencyMgr::SetBrandLevel` with the
+   bot-level-scaled proficiency. This requires mod-branding's `Branding.Effect.Enable = 1` globally.
+
+`SetBrandLevel` is a small public addition to mod-branding (there was previously no way to grant a level
+except simulated activity). Ordering note: this module's `PlayerScript` runs **before** mod-branding's own
+login load, so all three grants persist to the DB immediately and are re-read by mod-branding's
+`LoadPlayer` in the same login — the end state is consistent regardless of hook order.
 
 ## 5. Interaction with #83 (raid-wide passive buff)
 
@@ -98,13 +120,21 @@ Issue [#83](https://github.com/and-elf/azerothcore-wotlk/issues/83) grants a rai
 (drop-rate / xp-rate) derived from the **highest branding proficiency** in the raid, expensive to
 re-select. Requirement for this module:
 
+> **UPDATED (design override).** The original stance below was that a bot's brand is *cosmetic/flavor*
+> and confers no proficiency. In practice that made a branded bot **indistinguishable** from an
+> unbranded one — no visual, and (because the effect model gates on account Knowledge + a non-zero
+> proficiency level) no effect. Per an explicit product decision, branded bots now **express** their
+> brand: cosmetic aura **and** a bot-level-scaled proficiency effect (see §4.1). The raid-buff
+> constraint below still holds and becomes a **follow-up** when #83 lands: a bot's *granted* proficiency
+> is for its own expression only and must **not** drive the raid-wide "highest proficiency" scan.
+
 - **Bots receive the raid buff** as ordinary raid members — nothing special needed; #83 projects to
   all members.
-- **Bots do not drive it.** A random bot has **no earned proficiency**, so its (zero) proficiency
-  must not enter the "highest in raid" calculation as a real contributor, and it must never *lower*
-  the buff. Whatever branded weapon the bot carries here is cosmetic/flavor — it does not confer
-  proficiency. #83's "highest proficiency" scan must treat `IsRandomBot` members as non-contributing
-  recipients.
+- **Bots do not drive it.** Although a random bot is now *granted* a proficiency so its own brand
+  expresses, that granted proficiency must not enter the "highest in raid" calculation as a real
+  contributor, and it must never *lower* the buff. #83's "highest proficiency" scan must treat
+  `IsRandomBot` members as non-contributing recipients. (No raid-wide buff exists in the tree yet, so
+  there is nothing to guard today; this is recorded as a compatibility constraint for when #83 lands.)
 
 **Sequencing:** #83 is nearly complete and merges first. Because bots don't exist in the tree until
 the playerbots migration, #83 as merged won't yet special-case `IsRandomBot`. This is therefore a
